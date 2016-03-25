@@ -18,9 +18,8 @@ app.get('/todos', function (req, res) {
 });
 
 app.get('/todos/:id', function (req, res) {
-    var result = _.find(todos, function (toCheck) {
-        return toCheck.id.toString() === req.params.id
-    });
+    var todoId = parseInt(req.params.id);
+    var result = _.findWhere(todos, { id: todoId });
 
     if (result) {
         res.json(result); 
@@ -30,10 +29,16 @@ app.get('/todos/:id', function (req, res) {
 });
 
 app.post('/todos', function (req, res) {
-    var body = req.body;
+    var body = _.pick(req.body, 'description', 'completed');
 
+    if (!_.isBoolean(body.completed) 
+        || !_.isString(body.description) 
+        || body.description.trim().length === 0) {
+        return res.status(400).send();
+    }
+
+    body.description = body.description.trim();
     body.id = todoNextId++;
-
     todos.push(body);
     res.json(body);
 });
